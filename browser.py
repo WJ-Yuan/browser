@@ -6,6 +6,42 @@ HSTEP, VSTEP = 13, 18
 SCROLL_STEP = 100
 FONT_SIZE = 12
 
+FONTS = {} # for font cache
+
+def get_font(size, weight, style):
+  key = (size, weight, style)
+
+  if key not in FONTS:
+    font = tkfont.Font(size=size, weight=weight, slant=style)
+    label = tkinter.Label(font=font)
+    FONTS[key] = (font, label)
+
+  return FONTS[key][0]
+
+def lex(body):
+  out = []
+  buffer = ""
+  in_tag = False
+
+  for c in body:
+    if c == "<":
+      in_tag = True
+      if buffer:
+        out.append(Text(buffer))
+      buffer = ""
+    elif c == ">":
+      in_tag = False
+      out.append(Tag(buffer))
+      buffer = ""
+    else:
+      buffer += c
+
+  if not in_tag and buffer:
+    out.append(Text(buffer))
+
+  return out
+
+
 class Tag:
   def __init__(self, tag):
     self.tag = tag
@@ -53,11 +89,7 @@ class Layout:
       self.cursor_y += VSTEP
 
   def word(self, word):
-    font = tkfont.Font(
-          size=self.size,
-          weight=self.weight,
-          slant=self.style
-        )
+    font = get_font(self.size, self.weight, self.style)
     w = font.measure(word)
 
     if self.cursor_x + w >= WIDTH - HSTEP:
@@ -83,28 +115,7 @@ class Layout:
 
 
 
-def lex(body):
-  out = []
-  buffer = ""
-  in_tag = False
 
-  for c in body:
-    if c == "<":
-      in_tag = True
-      if buffer:
-        out.append(Text(buffer))
-      buffer = ""
-    elif c == ">":
-      in_tag = False
-      out.append(Tag(buffer))
-      buffer = ""
-    else:
-      buffer += c
-
-  if not in_tag and buffer:
-    out.append(Text(buffer))
-
-  return out
 
 class Browser:
   def __init__(self):
