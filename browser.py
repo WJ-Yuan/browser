@@ -1,4 +1,4 @@
-import tkinter
+import tkinter, tkinter.font as tkfont
 from url import URL
 
 WIDTH, HEIGHT = 800, 600
@@ -6,15 +6,17 @@ HSTEP, VSTEP = 13, 18
 SCROLL_STEP = 100
 
 def layout(text):
+  font = tkfont.Font()
   display_text = []
   cursor_x, cursor_y = HSTEP, VSTEP
 
-  for c in text:
-    display_text.append((cursor_x, cursor_y, c))
-    cursor_x += HSTEP
+  for word in text.split():
+    w = font.measure(word)
+    display_text.append((cursor_x, cursor_y, word))
+    cursor_x += w + font.measure(" ")
 
-    if cursor_x >= WIDTH - HSTEP:
-      cursor_y += VSTEP
+    if cursor_x + w >= WIDTH - HSTEP:
+      cursor_y += font.metrics("linespace") * 1.25
       cursor_x = HSTEP
 
   return display_text
@@ -58,7 +60,7 @@ class Browser:
       if y > self.scroll + HEIGHT: continue
       if y + VSTEP < self.scroll: continue
 
-      self.canvas.create_text(x, y - self.scroll, text=c)
+      self.canvas.create_text(x, y - self.scroll, text=c, anchor="nw")
 
   def load(self, url):
     body = url.request()
